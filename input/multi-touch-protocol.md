@@ -27,11 +27,8 @@ B类驱动在数据包开头处通过调用input_mt_slot()，槽作为参数，�
 A、B类驱动都是通过调用input_sync()来标识多点触摸会话的结束。通知接收器执行
 EV_SYN/SYN_REPORT之前的所有事件，并准备接收新一轮的信号/数据包。
 
-The main difference between the stateless type A protocol and the stateful
-type B slot protocol lies in the usage of identifiable contacts to reduce
-the amount of data sent to userspace. The slot protocol requires the use of
-the ABS_MT_TRACKING_ID, either provided by the hardware or computed from
-the raw data [5].
+无状态的A类协议和有状态的B类槽协议的主要区别是使用触摸id，减少了向用户态发送的
+数据量。槽协议需要使用ABS_MT_TRACKING_ID，由硬件提供，或从raw数据中获取[5]。
 
 For type A devices, the kernel driver should generate an arbitrary
 enumeration of the full set of anonymous contacts currently on the
