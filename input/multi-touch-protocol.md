@@ -1,46 +1,31 @@
-多点触摸协议
+# 多点触摸协议
 
 > https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 
-Introduction
-------------
+## 介绍
 
-In order to utilize the full power of the new multi-touch and multi-user
-devices, a way to report detailed data from multiple contacts, i.e.,
-objects in direct contact with the device surface, is needed.  This
-document describes the multi-touch (MT) protocol which allows kernel
-drivers to report details for an arbitrary number of contacts.
+要想使用强大的多点触摸设备，就需要了解如何读取多个触摸点的详细数据，例如，直接
+触摸设备表面获取的对象。这篇文档描述多点触摸（MT）协议，让内核驱动读取多触摸点
+的详细信息。
 
-The protocol is divided into two types, depending on the capabilities of the
-hardware. For devices handling anonymous contacts (type A), the protocol
-describes how to send the raw data for all contacts to the receiver. For
-devices capable of tracking identifiable contacts (type B), the protocol
-describes how to send updates for individual contacts via event slots.
+根据设备功能，协议分为两类。匿名触摸（A类），向接收器发送所有触摸点的raw数据。
+可跟踪id触摸（B类），通过事件槽向每个触摸点发送独自的更新数据。
 
 
-Protocol Usage
---------------
+## 协议的使用
 
-Contact details are sent sequentially as separate packets of ABS_MT
-events. Only the ABS_MT events are recognized as part of a contact
-packet. Since these events are ignored by current single-touch (ST)
-applications, the MT protocol can be implemented on top of the ST protocol
-in an existing driver.
+触摸点的详细数据被当作独立的ABS_MT事件数据包顺序发送。只有ABS_MT事件才能被识别
+为一个触摸数据包的一部分。虽然多点触摸事件被单点（ST）应用程序所忽略，但是多点
+触摸协议依然可以在现有的单点触摸协议驱动之上得以实现。
 
-Drivers for type A devices separate contact packets by calling
-input_mt_sync() at the end of each packet. This generates a SYN_MT_REPORT
-event, which instructs the receiver to accept the data for the current
-contact and prepare to receive another.
+A类驱动在数据包结尾处通过调用input_mt_sync()来区别单个触摸数据包。产生一个
+SYN_MT_REPORT事件，通知接收器接受当前触摸的数据，并准备接收下一个数据。
 
-Drivers for type B devices separate contact packets by calling
-input_mt_slot(), with a slot as argument, at the beginning of each packet.
-This generates an ABS_MT_SLOT event, which instructs the receiver to
-prepare for updates of the given slot.
+B类驱动在数据包开头处通过调用input_mt_slot()，槽作为参数，来区别单个触摸数据
+包。产生一个ABS_MT_SLOT事件，通知接收器准备更新当前槽。
 
-All drivers mark the end of a multi-touch transfer by calling the usual
-input_sync() function. This instructs the receiver to act upon events
-accumulated since last EV_SYN/SYN_REPORT and prepare to receive a new set
-of events/packets.
+A、B类驱动都是通过调用input_sync()来标识多点触摸会话的结束。通知接收器执行
+EV_SYN/SYN_REPORT之前的所有事件，并准备接收新一轮的信号/数据包。
 
 The main difference between the stateless type A protocol and the stateful
 type B slot protocol lies in the usage of identifiable contacts to reduce
