@@ -2,36 +2,37 @@
 
 > https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 
+
 ## 介绍
 
-要想使用强大的多点触摸设备，就需要了解如何读取多个触摸点的详细数据，例如，直接
-触摸设备表面获取的对象。这篇文档描述多点触摸（以下简称MT）协议，让内核驱动读取
-多触摸点的详细信息。
+要想使用强大的多点触摸设备，就需要一种可以报告多点触摸的详细数据的方法，例如，
+直接触摸设备表面的对象。这篇文档描述多点触摸（以下简称MT）协议，让内核驱动报告
+多点触摸的详细信息。
 
 根据设备功能，协议分为两类。匿名触摸（A类），向接收器发送所有触摸点的raw数据。
-可跟踪id触摸（B类），通过事件槽向每个触摸点发送独自的更新数据。
+可跟踪id触摸（B类），通过事件槽向每个触摸点发送更新数据。
 
 
 ## 协议的使用
 
-触摸点的详细数据被当作独立的ABS_MT事件数据包顺序发送。只有ABS_MT事件才能被识别
-为一个触摸数据包的一部分。虽然多点触摸事件被单点（ST）应用程序所忽略，但是多点
-触摸协议依然可以在现有的单点触摸协议驱动之上得以实现。
+触摸点的详细数据就是顺序发送独立的ABS_MT事件数据包。触摸数据包中只有ABS_MT事件
+才能被识别。虽然单点触摸（ST）应用程序忽略多点触摸事件，但是依然可以在现有的
+单点触摸协议驱动上实现多点触摸协议。
 
-A类驱动在数据包结尾处通过调用input_mt_sync()来区别单个触摸数据包。产生一个
-SYN_MT_REPORT事件，通知接收器接受当前触摸的数据，并准备接收下一个数据。
+A类驱动，在数据包结尾处调用input_mt_sync()区分其他的触摸数据包。产生一个
+SYN_MT_REPORT事件，通知接收器接收当前触摸的数据，并准备接收下一个数据。
 
-B类驱动在数据包开头处通过调用input_mt_slot()，槽作为参数，来区别单个触摸数据
+B类驱动，在数据包开头处通过调用input_mt_slot()，槽作为参数，区分其他的触摸数据
 包。产生一个ABS_MT_SLOT事件，通知接收器准备更新当前槽。
 
-A、B类驱动都是通过调用input_sync()来标识多点触摸会话的结束。通知接收器执行
+A、B类驱动，都是调用input_sync()标识多点触摸会话的结束。通知接收器执行
 EV_SYN/SYN_REPORT之前的所有事件，并准备接收新一轮的信号/数据包。
 
 无状态的A类协议和有状态的B类槽协议的主要区别是使用触摸id，减少了向用户态发送的
 数据量。槽协议需要使用ABS_MT_TRACKING_ID，由硬件提供，或从raw数据中获取[5]。
 
 在A类设备表面触摸，内核驱动会产生无序的当前匿名触摸数据。出现在事件流里的数据包
-没有先后顺序。事件过滤、手指跟踪留给用户态来实现[3]。
+没有先后顺序。事件过滤、手指跟踪的特性功能留给用户态来实现[3]。
 
 B类设备，内核驱动会将槽与每个可标识的触摸关联起来，使用槽描述与之相对应的触摸
 产生的变化。通过修改ABS_MT_TRACKING_ID与之相对应的槽，实现触摸的构造、变换和
@@ -46,9 +47,9 @@ ABS_MT_TRACKING_ID。如果跟踪到的触摸总数大于当前报告的，驱�
 BTN_TOOL_*TAP事件通知用户态由硬件跟踪到的触摸总数。驱动发送BTN_TOOL_*TAP事件，
 并在调用input_mt_report_pointer_emulation()的时候，将use_count设置为false。硬件
 支持槽的总数，驱动就通知之。用户态可以发现驱动可以报告比BTN_TOOL_*TAP事件支持的
-最大值更多的触摸总数，多于B类槽报告的ABS_MT_SLOT矩阵的absinfo触摸总数。
+最大值更多的触摸总数，多于B类槽报告的ABS_MT_SLOT的absinfo触摸总数。
 
-ABS_MT_SLOT矩阵的最小值必须是0。
+ABS_MT_SLOT的最小值必须是0。
 
 ## A类协议的例子
 
@@ -139,9 +140,9 @@ ABS_MT_TOUCH_MAJOR和ABS_MT_WIDTH_MAJOR，就可以知道触摸区域的大小�
 由手指周长所构成的外部区域。触摸区域(a)的中心是ABS_MT_POSITION_X/Y，而手指(b)的
 中心是ABS_MT_TOOL_X/Y。触摸的直径是ABS_MT_TOUCH_MAJOR，而手指的直径是
 ABS_MT_WIDTH_MAJOR。现在假设某人使劲按玻璃。触摸区域将会变大，也就是，
-ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR的比率，永远比单位一（小学数学）小，和
-触摸的压感有关。支持压感的设备，ABS_MT_PRESSURE可以用来提供触摸范围内的压感值。
-支持旋转的设置可以使用ABS_MT_DISTANCE表示触摸和表面的距离。
+ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR的比率，永远比单位一小，和触摸的压感有关。
+支持压感的设备，ABS_MT_PRESSURE可以用来提供触摸范围内的压感值。可以使用
+ABS_MT_DISTANCE表示触摸和表面的间距。
 
 
       Linux MT                               Win8
@@ -163,131 +164,100 @@ ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR的比率，永远比单位一（小学�
                \__________/            |_______________________|
 
 
-除了MAJOR参数，可以用MINOR参数来描述触摸、手指的椭圆形状，MAJOR和MINOR是多边形
-的最大、最小矩阵。可以用ORIENTATION参数来描述触摸的多边形的朝向，使用矢量减法
-(a - b)了解手指的多边形的方向。
+除了MAJOR参数，可以用MINOR参数来描述触摸、手指的椭圆形状，MAJOR和MINOR是椭圆形
+的长、短轴。可以用ORIENTATION参数来描述触摸的椭圆形的旋转，使用矢量减法
+(a - b)知道椭圆形的方向。
 
 A类设备，ABS_MT_BLOB_ID可以进一步描述触摸的形状。
 
-ABS_MT_TOOL_TYPE可以用来指出是用手指、笔还是其他的工具来触摸的。最后，
+ABS_MT_TOOL_TYPE可以区分是通过手指、笔还是其他工具触摸的。最后，
 ABS_MT_TRACKING_ID事件可以用来实时地跟踪触摸id[5]。
 
 B类协议，ABS_MT_TOOL_TYPE和ABS_MT_TRACKING_ID是由输入核心处理；驱动应该调用
 input_mt_report_slot_state()。
 
-
-Event Semantics
----------------
+## 事件概念
 
 ABS_MT_TOUCH_MAJOR
 
-The length of the major axis of the contact. The length should be given in
-surface units. If the surface has an X times Y resolution, the largest
-possible value of ABS_MT_TOUCH_MAJOR is sqrt(X^2 + Y^2), the diagonal [4].
+触摸长轴的长度。长度和触摸表面的分辨率有关。如果分辨率是X * Y，
+ABS_MT_TOUCH_MAJOR的对角线[4]的最大值是sqrt(X^2 + Y^2)。
 
 ABS_MT_TOUCH_MINOR
 
-The length, in surface units, of the minor axis of the contact. If the
-contact is circular, this event can be omitted [4].
+以触摸表面为单位，短轴的长度。如果触摸的形状是圆形，就可以忽略[4]这个事件。
 
 ABS_MT_WIDTH_MAJOR
 
-The length, in surface units, of the major axis of the approaching
-tool. This should be understood as the size of the tool itself. The
-orientation of the contact and the approaching tool are assumed to be the
-same [4].
+以触摸表面为单位，工具的长轴长度。工具本身的大小。触摸和工具的旋转是一样的[4]。
 
 ABS_MT_WIDTH_MINOR
 
-The length, in surface units, of the minor axis of the approaching
-tool. Omit if circular [4].
+以触摸表面为单位，工具的短轴长度。忽略圆形。
 
-The above four values can be used to derive additional information about
-the contact. The ratio ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR approximates
-the notion of pressure. The fingers of the hand and the palm all have
-different characteristic widths.
+上述的四个值可以获得触摸的附加信息。ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR的
+比值大致等于压感。手指和手掌的宽度不同。
 
 ABS_MT_PRESSURE
 
-The pressure, in arbitrary units, on the contact area. May be used instead
-of TOUCH and WIDTH for pressure-based devices or any device with a spatial
-signal intensity distribution.
+任意单位的触摸表面的压感。支持压感或支持空间信号强度分布的设备可以用
+ABS_MT_PRESSURE替代TOUCH和WIDTH的比值。
 
 ABS_MT_DISTANCE
 
-The distance, in surface units, between the contact and the surface. Zero
-distance means the contact is touching the surface. A positive number means
-the contact is hovering above the surface.
+以触摸表面为单位，触摸和触摸面的间距。间距为0表示正在触摸表面。正数表示触摸在
+触摸面上悬空。
 
 ABS_MT_ORIENTATION
 
-The orientation of the touching ellipse. The value should describe a signed
-quarter of a revolution clockwise around the touch center. The signed value
-range is arbitrary, but zero should be returned for an ellipse aligned with
-the Y axis of the surface, a negative value when the ellipse is turned to
-the left, and a positive value when the ellipse is turned to the
-right. When completely aligned with the X axis, the range max should be
-returned.
+触摸椭圆形的旋转。该值表示以触摸中心点为圆心，正时针旋转的刻度。值域范围是任意
+的，以触摸表面Y轴正方向为0度，负数表示向左旋转，正数表示向右旋转。当围绕X轴旋转
+一周，返回值域范围内的最大值。
 
-Touch ellipsis are symmetrical by default. For devices capable of true 360
-degree orientation, the reported orientation must exceed the range max to
-indicate more than a quarter of a revolution. For an upside-down finger,
-range max * 2 should be returned.
+触摸椭圆形默认是轴对称的。但是我觉得一般人的手最多旋转180度。
 
-Orientation can be omitted if the touch area is circular, or if the
-information is not available in the kernel driver. Partial orientation
-support is possible if the device can distinguish between the two axis, but
-not (uniquely) any values in between. In such cases, the range of
-ABS_MT_ORIENTATION should be [0, 1] [4].
+如果触摸面是圆形，旋转值就可以忽略不计，或者内核驱动不提供该信息。如果设备
+可以区分长短轴，就可以部分支持旋转。ABS_MT_ORIENTATION的值域是[0, 1]。[4]
 
 ABS_MT_POSITION_X
 
-The surface X coordinate of the center of the touching ellipse.
+触摸椭圆的中心点在触摸表面的坐标X值。
 
 ABS_MT_POSITION_Y
 
-The surface Y coordinate of the center of the touching ellipse.
+触摸椭圆的中心点在触摸表面的坐标Y值。
 
 ABS_MT_TOOL_X
 
-The surface X coordinate of the center of the approaching tool. Omit if
-the device cannot distinguish between the intended touch point and the
-tool itself.
+工具的中心点在触摸表面的坐标X值。如果设备无法区分触摸点和工具本身，忽略该值。
 
 ABS_MT_TOOL_Y
 
-The surface Y coordinate of the center of the approaching tool. Omit if the
-device cannot distinguish between the intended touch point and the tool
-itself.
+工具的中心点在触摸表面的坐标Y值。如果设备无法区分触摸点和工具本身，忽略该值。
 
 The four position values can be used to separate the position of the touch
 from the position of the tool. If both positions are present, the major
 tool axis points towards the touch point [1]. Otherwise, the tool axes are
 aligned with the touch axes.
+四种位置值可以用来区分触摸和工具的位置。
 
 ABS_MT_TOOL_TYPE
 
-The type of approaching tool. A lot of kernel drivers cannot distinguish
-between different tool types, such as a finger or a pen. In such cases, the
-event should be omitted. The protocol currently supports MT_TOOL_FINGER and
-MT_TOOL_PEN [2]. For type B devices, this event is handled by input core;
-drivers should instead use input_mt_report_slot_state().
+工具的种类。大多数内核驱动无法区别不同工具的类型，比如无法区分是一根手指还是
+一只笔。忽略该事件。协议目前支持MT_TOOL_FINGER和MT_TOOL_PEN[2]。B类设备，由输入
+核心来处理该事件；驱动调用input_mt_report_slot_state()。
 
 ABS_MT_BLOB_ID
 
-The BLOB_ID groups several packets together into one arbitrarily shaped
-contact. The sequence of points forms a polygon which defines the shape of
-the contact. This is a low-level anonymous grouping for type A devices, and
-should not be confused with the high-level trackingID [5]. Most type A
-devices do not have blob capability, so drivers can safely omit this event.
+BLOB_ID将多个数据包分组成一个任意形状的触摸。形成多边形的离散点序列定义了触摸的
+形状。这是针对A类设备的底层匿名分组，不会和可跟踪ID[5]弄混淆。大多数A类设备不
+支持blob，所以驱动可以忽略该事件。
 
 ABS_MT_TRACKING_ID
 
-The TRACKING_ID identifies an initiated contact throughout its life cycle
-[5]. The value range of the TRACKING_ID should be large enough to ensure
-unique identification of a contact maintained over an extended period of
-time. For type B devices, this event is handled by input core; drivers
-should instead use input_mt_report_slot_state().
+TRACKING_ID识别一个触摸，并贯穿它的整个生命周期[5]。TRACKING_ID的值域要足够大，
+保证在漫长的触摸体验时，触摸id是唯一的。B类设备，由输入核心管理该事件；驱动调用
+input_mt_report_slot_state()。
 
 
 Event Computation
