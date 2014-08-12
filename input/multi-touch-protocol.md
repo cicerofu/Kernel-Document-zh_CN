@@ -128,31 +128,20 @@ B类设备的两个触摸点的最小事件序列如下所示：
    SYN_REPORT
 ```
 
+## 事件的使用
 
-Event Usage
------------
+定义了一组包含属性的ABS_MT事件。事件分为多种，允许只实现了其中某一部分。最小的
+事件集包含ABS_MT_POSITION_X和ABS_MT_POSITION_Y，可以跟踪多点触摸。如果设备支持
+ABS_MT_TOUCH_MAJOR和ABS_MT_WIDTH_MAJOR，就可以知道触摸区域的大小、支持的工具。
 
-A set of ABS_MT events with the desired properties is defined. The events
-are divided into categories, to allow for partial implementation.  The
-minimum set consists of ABS_MT_POSITION_X and ABS_MT_POSITION_Y, which
-allows for multiple contacts to be tracked.  If the device supports it, the
-ABS_MT_TOUCH_MAJOR and ABS_MT_WIDTH_MAJOR may be used to provide the size
-of the contact area and approaching tool, respectively.
-
-The TOUCH and WIDTH parameters have a geometrical interpretation; imagine
-looking through a window at someone gently holding a finger against the
-glass.  You will see two regions, one inner region consisting of the part
-of the finger actually touching the glass, and one outer region formed by
-the perimeter of the finger. The center of the touching region (a) is
-ABS_MT_POSITION_X/Y and the center of the approaching finger (b) is
-ABS_MT_TOOL_X/Y. The touch diameter is ABS_MT_TOUCH_MAJOR and the finger
-diameter is ABS_MT_WIDTH_MAJOR. Now imagine the person pressing the finger
-harder against the glass. The touch region will increase, and in general,
-the ratio ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR, which is always smaller
-than unity, is related to the contact pressure. For pressure-based devices,
-ABS_MT_PRESSURE may be used to provide the pressure on the contact area
-instead. Devices capable of contact hovering can use ABS_MT_DISTANCE to
-indicate the distance between the contact and the surface.
+用几何来解释TOUCH和WIDTH参数；假设向一个窗户看过去，某人正轻轻地指向这面玻璃。
+你将看到两个区域，一个由真实触摸在玻璃上的某一部分手指所构成的内部区域，和一个
+由手指周长所构成的外部区域。触摸区域(a)的中心是ABS_MT_POSITION_X/Y，而手指(b)的
+中心是ABS_MT_TOOL_X/Y。触摸的直径是ABS_MT_TOUCH_MAJOR，而手指的直径是
+ABS_MT_WIDTH_MAJOR。现在假设某人使劲按玻璃。触摸区域将会变大，也就是，
+ABS_MT_TOUCH_MAJOR / ABS_MT_WIDTH_MAJOR的比率，永远比单位一（小学数学）小，和
+触摸的压感有关。支持压感的设备，ABS_MT_PRESSURE可以用来提供触摸范围内的压感值。
+支持旋转的设置可以使用ABS_MT_DISTANCE表示触摸和表面的距离。
 
 
       Linux MT                               Win8
@@ -174,22 +163,17 @@ indicate the distance between the contact and the surface.
                \__________/            |_______________________|
 
 
-In addition to the MAJOR parameters, the oval shape of the touch and finger
-regions can be described by adding the MINOR parameters, such that MAJOR
-and MINOR are the major and minor axis of an ellipse. The orientation of
-the touch ellipse can be described with the ORIENTATION parameter, and the
-direction of the finger ellipse is given by the vector (a - b).
+除了MAJOR参数，可以用MINOR参数来描述触摸、手指的椭圆形状，MAJOR和MINOR是多边形
+的最大、最小矩阵。可以用ORIENTATION参数来描述触摸的多边形的朝向，使用矢量减法
+(a - b)了解手指的多边形的方向。
 
-For type A devices, further specification of the touch shape is possible
-via ABS_MT_BLOB_ID.
+A类设备，ABS_MT_BLOB_ID可以进一步描述触摸的形状。
 
-The ABS_MT_TOOL_TYPE may be used to specify whether the touching tool is a
-finger or a pen or something else. Finally, the ABS_MT_TRACKING_ID event
-may be used to track identified contacts over time [5].
+ABS_MT_TOOL_TYPE可以用来指出是用手指、笔还是其他的工具来触摸的。最后，
+ABS_MT_TRACKING_ID事件可以用来实时地跟踪触摸id[5]。
 
-In the type B protocol, ABS_MT_TOOL_TYPE and ABS_MT_TRACKING_ID are
-implicitly handled by input core; drivers should instead call
-input_mt_report_slot_state().
+B类协议，ABS_MT_TOOL_TYPE和ABS_MT_TRACKING_ID是由输入核心处理；驱动应该调用
+input_mt_report_slot_state()。
 
 
 Event Semantics
