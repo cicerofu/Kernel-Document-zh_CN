@@ -85,12 +85,11 @@ A类设备的两个触摸点的最小事件序列如下所示：
 将被忽略。否则，最后的SYN_REPORT事件将被遗漏，结果就变成没有触摸事件到达用户态。
 
 
-Protocol Example B
-------------------
+## B类协议的例子
 
-Here is what a minimal event sequence for a two-contact touch would look
-like for a type B device:
+B类设备的两个触摸点的最小事件序列如下所示：
 
+```
    ABS_MT_SLOT 0
    ABS_MT_TRACKING_ID 45
    ABS_MT_POSITION_X x[0]
@@ -100,27 +99,34 @@ like for a type B device:
    ABS_MT_POSITION_X x[1]
    ABS_MT_POSITION_Y y[1]
    SYN_REPORT
+```
 
-Here is the sequence after moving contact 45 in the x direction:
+这是触摸ABS_MT_TRACKING_ID为45的触摸点在X轴移动的序列：
 
+```
    ABS_MT_SLOT 0
    ABS_MT_POSITION_X x[0]
    SYN_REPORT
+```
 
-Here is the sequence after lifting the contact in slot 0:
+这是槽（序号）为0的触摸离开的序列：
 
+```
    ABS_MT_TRACKING_ID -1
    SYN_REPORT
+```
 
-The slot being modified is already 0, so the ABS_MT_SLOT is omitted.  The
-message removes the association of slot 0 with contact 45, thereby
-destroying contact 45 and freeing slot 0 to be reused for another contact.
+被更改的槽（序号）已经为0，所以ABS_MT_SLOT就被忽略了。删除和ABS_MT_TRACKING_ID
+为45、槽（序号）为0的触摸信息，析构ABS_MT_TRACKING_ID为45的触摸，释放
+（序号为0）槽，供其他的触摸来复用。
 
-Finally, here is the sequence after lifting the second contact:
+最后，第二个触摸点也离开时的序列：
 
+```
    ABS_MT_SLOT 1
    ABS_MT_TRACKING_ID -1
    SYN_REPORT
+```
 
 
 Event Usage
