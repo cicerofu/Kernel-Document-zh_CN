@@ -1,13 +1,16 @@
 # 多点触摸协议
 
+Copyright (C) 2014 Leslie Zhai <xiang.zhai@i-soft.com.cn>
+Copyright (C) 2014 Hyizal Sun <rong.sun@intel.com>
+
 > https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 
 
 ## 介绍
 
-要想使用强大的多点触摸设备，就需要一种可以报告多点触摸的详细数据的方法，例如，
-直接触摸设备表面的对象。这篇文档描述多点触摸（以下简称MT）协议，让内核驱动报告
-多点触摸的详细信息。
+要想充分有效利用强大的多点触摸设备，就需要一种可以报告多点触摸的详细数据的方法，
+例如，直接触摸设备表面的对象。这篇文档描述多点触摸（以下简称MT）协议，让内核
+驱动报告多点触摸的详细信息。
 
 根据设备功能，协议分为两类。匿名触摸（A类），向接收器发送所有触摸点的raw数据。
 可跟踪id触摸（B类），通过事件槽向每个触摸点发送更新数据。
@@ -50,6 +53,7 @@ BTN_TOOL_*TAP事件通知用户态由硬件跟踪到的触摸总数。驱动发�
 最大值更多的触摸总数，多于B类槽报告的ABS_MT_SLOT的absinfo触摸总数。
 
 ABS_MT_SLOT的最小值必须是0。
+
 
 ## A类协议的例子
 
@@ -129,6 +133,7 @@ B类设备的两个触摸点的最小事件序列如下所示：
    SYN_REPORT
 ```
 
+
 ## 事件的使用
 
 定义了一组包含属性的ABS_MT事件。事件分为多种，允许只实现了其中某一部分。最小的
@@ -176,7 +181,8 @@ ABS_MT_TRACKING_ID事件可以用来实时地跟踪触摸id[5]。
 B类协议，ABS_MT_TOOL_TYPE和ABS_MT_TRACKING_ID是由输入核心处理；驱动应该调用
 input_mt_report_slot_state()。
 
-## 事件概念
+
+## 事件的概念
 
 ABS_MT_TOUCH_MAJOR
 
@@ -235,11 +241,8 @@ ABS_MT_TOOL_Y
 
 工具的中心点在触摸表面的坐标Y值。如果设备无法区分触摸点和工具本身，忽略该值。
 
-The four position values can be used to separate the position of the touch
-from the position of the tool. If both positions are present, the major
-tool axis points towards the touch point [1]. Otherwise, the tool axes are
-aligned with the touch axes.
-四种位置值可以用来区分触摸和工具的位置。
+四种位置值可以用来区分触摸和工具的位置。工具长轴朝向触摸点[1]。否则，工具与触摸
+平行。
 
 ABS_MT_TOOL_TYPE
 
@@ -260,83 +263,71 @@ TRACKING_ID识别一个触摸，并贯穿它的整个生命周期[5]。TRACKING_
 input_mt_report_slot_state()。
 
 
-Event Computation
------------------
+## 事件的计算
 
-The flora of different hardware unavoidably leads to some devices fitting
-better to the MT protocol than others. To simplify and unify the mapping,
-this section gives recipes for how to compute certain events.
+不同的硬件体系无法避免某些设备无法适配MT协议。为了简化、统一思路，该章节描述
+如何计算相关事件的秘诀。
 
-For devices reporting contacts as rectangular shapes, signed orientation
-cannot be obtained. Assuming X and Y are the lengths of the sides of the
-touching rectangle, here is a simple formula that retains the most
-information possible:
+把触摸报告成矩形的设备，无法获得有向旋转(signed orientation)。假设X、Y是触摸
+矩形的两个边长，包含绝大多数信息的简单的公式如下所示：
 
+```
    ABS_MT_TOUCH_MAJOR := max(X, Y)
    ABS_MT_TOUCH_MINOR := min(X, Y)
    ABS_MT_ORIENTATION := bool(X > Y)
+```
 
-The range of ABS_MT_ORIENTATION should be set to [0, 1], to indicate that
-the device can distinguish between a finger along the Y axis (0) and a
-finger along the X axis (1).
+ABS_MT_ORIENTATION的值域设为[0, 1]，设备可以区分手指在Y轴(0)还是在X轴(1)。
 
-For win8 devices with both T and C coordinates, the position mapping is
+win8设备有T、C坐标，坐标映射如下所示：
 
+```
    ABS_MT_POSITION_X := T_X
    ABS_MT_POSITION_Y := T_Y
    ABS_MT_TOOL_X := C_X
    ABS_MT_TOOL_X := C_Y
+```
 
-Unfortunately, there is not enough information to specify both the touching
-ellipse and the tool ellipse, so one has to resort to approximations.  One
-simple scheme, which is compatible with earlier usage, is:
+但是，没有足够的信息确定触摸椭圆和工具椭圆，所以必须使用曲线拟合。简单的解法
+，具有一定普适性，如下所示：
 
+```
    ABS_MT_TOUCH_MAJOR := min(X, Y)
    ABS_MT_TOUCH_MINOR := <not used>
    ABS_MT_ORIENTATION := <not used>
    ABS_MT_WIDTH_MAJOR := min(X, Y) + distance(T, C)
    ABS_MT_WIDTH_MINOR := min(X, Y)
+```
 
-Rationale: We have no information about the orientation of the touching
-ellipse, so approximate it with an inscribed circle instead. The tool
-ellipse should align with the vector (T - C), so the diameter must
-increase with distance(T, C). Finally, assume that the touch diameter is
-equal to the tool thickness, and we arrive at the formulas above.
-
-Finger Tracking
----------------
-
-The process of finger tracking, i.e., to assign a unique trackingID to each
-initiated contact on the surface, is a Euclidian Bipartite Matching
-problem.  At each event synchronization, the set of actual contacts is
-matched to the set of contacts from the previous synchronization. A full
-implementation can be found in [3].
+原理：我们没有触摸椭圆的旋转信息，所以使用拟合的圆形逼近。工具椭圆必须和(T - C)
+矢量平行，所以直径必须随着(T, C)的距离而变大。最后，假设触摸直径等于工具厚度，
+如上述公式所示。
 
 
-Gestures
---------
+## 手指的跟踪
 
-In the specific application of creating gesture events, the TOUCH and WIDTH
-parameters can be used to, e.g., approximate finger pressure or distinguish
-between index finger and thumb. With the addition of the MINOR parameters,
-one can also distinguish between a sweeping finger and a pointing finger,
-and with ORIENTATION, one can detect twisting of fingers.
+手指的跟踪处理过程，例如，向每个在触摸表面初次触摸赋予唯一的跟踪ID，是
+欧几里得的二分匹配(Euclidian Bipartite Matching)。在每次事件同步的时候，一组
+触摸与先前同步的一组触摸相匹配。完整的实现[3]。
 
 
-Notes
------
+## 手势
 
-In order to stay compatible with existing applications, the data reported
-in a finger packet must not be recognized as single-touch events.
+创建手势事件的应用程序，可以使用TOUCH和WIDTH参数，比如手指压感，或者区分食指
+还是拇指。使用MINOR参数，还可以区分手指滑动还是手指点击，而使用ORIENTATION，
+可以知道手指旋转。
 
-For type A devices, all finger data bypasses input filtering, since
-subsequent events of the same type refer to different fingers.
 
-For example usage of the type A protocol, see the bcm5974 driver. For
-example usage of the type B protocol, see the hid-egalax driver.
+## 注释
 
-[1] Also, the difference (TOOL_X - POSITION_X) can be used to model tilt.
-[2] The list can of course be extended.
-[3] The mtdev project: http://bitmath.org/code/mtdev/.
-[4] See the section on event computation.
-[5] See the section on finger tracking.
+为了兼容已有的应用程序，手指数据包中报告的数据决不能识别成单点触摸事件。
+
+A类设备，所有的手指数据不用被滤波，不同的手指都使用相同类型的事件子序列。
+
+使用A类协议，可以看bcm5974驱动。使用B类协议，可以看hid-egalax驱动。
+
+[1] 同理，(TOOL_X - POSITION_X)差值可以判断倾角
+[2] 可以扩充列表
+[3] mtdev项目 http://bitmath.org/code/mtdev/
+[4] 查看事件的计算章节
+[5] 查看手指的跟踪章节
