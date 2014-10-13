@@ -15,7 +15,7 @@ Linux 3.8合并窗口看到了接受Eric Biederman的一大波[用户命名空�
 比如[内核日志命名空间的隔离](http://lwn.net/Articles/527342/)。
 第三，近期对用户命名空间实现的变更，意味着游戏规则改变，如何使用命名空间：
 从Linux 3.8开始，没有权限的进程可以创建用户命名空间，并在其中具有全部权限，
-反过来理解就是，在一个用户命名空间内允许创建任意其他类型的命名空间。
+反之，在一个用户命名空间内允许创建任意其他类型的命名空间。
 
 所以，现在趁热打铁看看命名空间的概述和API。该系列文章首次概括描述现有命名空间；
 接下来，会讲如何在程序中使用命名空间的API。
@@ -27,7 +27,9 @@ Linux 3.8合并窗口看到了接受Eric Biederman的一大波[用户命名空�
 容器是轻量化虚拟（还有其他目的）工具，可以让一组进程产生错觉，错误地认为他们是
 系统中唯一的进程。
 
-In the discussion below, we present the namespaces in the order that they were implemented (or at least, the order in which the implementations were completed). The CLONE_NEW* identifiers listed in parentheses are the names of the constants used to identify namespace types when employing the namespace-related APIs (clone(), unshare(), and setns()) that we will describe in our follow-on articles.
+接下来，以命名空间被（完全）实现出来的先后顺序进行阐述。括号中罗列出来的
+常量CLONE_NEW*用来区分命名空间，及其与之相关的API：接下来的几篇文章中将介绍
+clone()、unshare()和setns()。
 
 Mount namespaces (CLONE_NEWNS, Linux 2.4.19) isolate the set of filesystem mount points seen by a group of processes. Thus, processes in different mount namespaces can have different views of the filesystem hierarchy. With the addition of mount namespaces, the mount() and umount() system calls ceased operating on a global set of mount points visible to all processes on the system and instead performed operations that affected just the mount namespace associated with the calling process.
 
@@ -35,7 +37,12 @@ One use of mount namespaces is to create environments that are similar to chroot
 
 Mount namespaces were the first type of namespace to be implemented on Linux, appearing in 2002. This fact accounts for the rather generic "NEWNS" moniker (short for "new namespace"): at that time no one seems to have been thinking that other, different types of namespace might be needed in the future.
 
-UTS namespaces (CLONE_NEWUTS, Linux 2.6.19) isolate two system identifiers—nodename and domainname—returned by the uname() system call; the names are set using the sethostname() and setdomainname() system calls. In the context of containers, the UTS namespaces feature allows each container to have its own hostname and NIS domain name. This can be useful for initialization and configuration scripts that tailor their actions based on these names. The term "UTS" derives from the name of the structure passed to the uname() system call: struct utsname. The name of that structure in turn derives from "UNIX Time-sharing System".
+UTS命名空间（CLONE_NEWUTS，Linux 2.6.19）隔离两个系统ID：节点名和域名；
+使用系统调用sethostname()和setdomainname()来设置它们。
+在容器的上下文当中，UTS命名空间特性允许每个容器拥有自己的主机名和NIS域名。
+对初始化和配置脚本非常有帮助，可以基于名称进行裁剪。
+“UTS”该术语来源于传递给uname()系统调用的结构体的名字：struct ustname。
+结构体的名字又是来源于“UNIX Time-sharing System”。
 
 IPC namespaces (CLONE_NEWIPC, Linux 2.6.19) isolate certain interprocess communication (IPC) resources, namely, System V IPC objects and (since Linux 2.6.30) POSIX message queues. The common characteristic of these IPC mechanisms is that IPC objects are identified by mechanisms other than filesystem pathnames. Each IPC namespace has its own set of System V IPC identifiers and its own POSIX message queue filesystem.
 
