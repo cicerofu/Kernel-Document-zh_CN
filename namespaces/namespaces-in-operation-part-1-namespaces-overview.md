@@ -8,24 +8,24 @@ Linux 3.8合并窗口看到了接受Eric Biederman的一大波[用户命名空�
 尽管还有一些细节需要完善，例如，一些Linux文件系统还不支持用户命名空间，目前已经
 完成了用户命名空间的功能实现。
 
-完成用户命名空间的工作是一个里程碑，原因如下。第一，该工作代表了迄今为止巨复杂的
-命名空间的实现已经完成，从Linux 2.6.23用户命名空间迈出的第一步，已经过去了5年。
-第二，命名空间的工作已经处于“稳定”，现有的命名空间大部分已经实现。但不意味着命名
-空间的工作已经结束：未来可能会添加其他的命名空间，或对现有的命名空间进行扩展，
-比如[内核日志命名空间的隔离](http://lwn.net/Articles/527342/)。
-第三，近期对用户命名空间实现的变更，意味着游戏规则改变，如何使用命名空间：
+完成用户命名空间的工作是一个里程碑，原因如下。
+第一，该工作代表迄今为止巨复杂的命名空间的实现已经完成，从Linux 2.6.23
+用户命名空间迈出的第一步，已经过去了5年。
+第二，命名空间的工作已经处于“稳定”，现有的命名空间大部分已实现。
+但不意味着命名空间的工作已结束：未来可能会添加其他的命名空间，或对现有的命名空间进行扩展，比如[内核日志命名空间的隔离](http://lwn.net/Articles/527342/)。
+第三，近期对用户命名空间实现的变更，意味着游戏规则已改变，如何使用命名空间：
 从Linux 3.8开始，没有权限的进程可以创建用户命名空间，并在其中具有全部权限，
 反之，在一个用户命名空间内允许创建任意其他类型的命名空间。
 
-所以，现在趁热打铁看看命名空间的概述和API。该系列文章首次概括描述现有命名空间；
+所以，现在趁热打铁看看命名空间的概述和API。
+该系列文章首次概括描述现有命名空间；
 接下来，会讲如何在程序中使用命名空间的API。
 
 ## 命名空间
 
-目前，Linux实现了6种命名空间。每个命名空间封装了一个抽象的全局系统资源，具有该
-命名空间的进程拥有隔离的全局资源实例。命名空间的还有一个目的是用来支持容器的实现，
-容器是轻量化虚拟（还有其他目的）工具，可以让一组进程产生错觉，错误地认为他们是
-系统中唯一的进程。
+目前，Linux实现了6种命名空间。
+每个命名空间封装了一个抽象的全局系统资源，具有该命名空间的进程拥有隔离的全局资源实例。
+命名空间的还有一个目的是用来支持容器的实现，容器是轻量化虚拟（还有其他目的）工具，可以让一组进程产生错觉，错误地认为他们是系统中唯一的进程。
 
 接下来，以命名空间被（完全）实现出来的先后顺序进行阐述。括号中罗列出来的
 常量CLONE_NEW*用来区分命名空间，及其与之相关的API：接下来的几篇文章中将介绍
@@ -46,9 +46,14 @@ UTS命名空间（CLONE_NEWUTS，Linux 2.6.19）隔离两个系统ID：节点名
 
 IPC namespaces (CLONE_NEWIPC, Linux 2.6.19) isolate certain interprocess communication (IPC) resources, namely, System V IPC objects and (since Linux 2.6.30) POSIX message queues. The common characteristic of these IPC mechanisms is that IPC objects are identified by mechanisms other than filesystem pathnames. Each IPC namespace has its own set of System V IPC identifiers and its own POSIX message queue filesystem.
 
-PID namespaces (CLONE_NEWPID, Linux 2.6.24) isolate the process ID number space. In other words, processes in different PID namespaces can have the same PID. One of the main benefits of PID namespaces is that containers can be migrated between hosts while keeping the same process IDs for the processes inside the container. PID namespaces also allow each container to have its own init (PID 1), the "ancestor of all processes" that manages various system initialization tasks and reaps orphaned child processes when they terminate.
+PID命名空间（CLONE_NEWPID，Linux 2.6.24）隔离进程ID数字空间。
+换言之，在不同PID命名空间里的进程可以具有相同的PID。
+PID命名空间的一个最大好处就是容器可以在主机之间迁移，保持容器内的进程具有相同的ID。
+PID命名空间还允许每个容器拥有init（PID 1），“所有进程的祖先”管理这系统初始化任务，回收退出的子进程。
 
 From the point of view of a particular PID namespace instance, a process has two PIDs: the PID inside the namespace, and the PID outside the namespace on the host system. PID namespaces can be nested: a process will have one PID for each of the layers of the hierarchy starting from the PID namespace in which it resides through to the root PID namespace. A process can see (e.g., view via /proc/PID and send signals with kill()) only processes contained in its own PID namespace and the namespaces nested below that PID namespace.
+
+从特定的PID命名空间实例来看，一个进程有两个PIDs：命名空间之内的PID，命名空间之外（宿主）的PID。
 
 Network namespaces (CLONE_NEWNET, started in Linux 2.4.19 2.6.24 and largely completed by about Linux 2.6.29) provide isolation of the system resources associated with networking. Thus, each network namespace has its own network devices, IP addresses, IP routing tables, /proc/net directory, port numbers, and so on.
 
