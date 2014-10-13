@@ -4,23 +4,28 @@
 
 > http://lwn.net/Articles/531114/
 
-Linux 3.8合并窗口看到接受了Eric Biederman的一大波用户命名空间及其相关补丁(http://lwn.net/Articles/528078/)。尽管还有一些细节需要完善，例如，一些Linux文件系统还不支持
-用户命名空间，目前已经完成了用户命名空间的实现。
+Linux 3.8合并窗口看到了接受Eric Biederman的一大波[用户命名空间及其相关补丁](http://lwn.net/Articles/528078/)。
+尽管还有一些细节需要完善，例如，一些Linux文件系统还不支持用户命名空间，目前已经
+完成了用户命名空间的功能实现。
 
 完成用户命名空间的工作是一个里程碑，原因如下。第一，该工作代表了迄今为止巨复杂的
 命名空间的实现已经完成，从Linux 2.6.23用户命名空间迈出的第一步，已经过去了5年。
 第二，命名空间的工作已经处于“稳定”，现有的命名空间大部分已经实现。但不意味着命名
 空间的工作已经结束：未来可能会添加其他的命名空间，或对现有的命名空间进行扩展，
-比如内核日志命名空间的隔离(http://lwn.net/Articles/527342/)。第三，近期对用户
-命名空间实现的改变，意味着游戏规则改变，如何使用命名空间：从Linux 3.8开始，没有
-权限的进程可以创建用户命名空间，在一个用户命名空间内允许创建任意其他类型的命名空间。
+比如[内核日志命名空间的隔离](http://lwn.net/Articles/527342/)。
+第三，近期对用户命名空间实现的变更，意味着游戏规则改变，如何使用命名空间：
+从Linux 3.8开始，没有权限的进程可以创建用户命名空间，并在其中具有全部权限，
+反过来理解就是，在一个用户命名空间内允许创建任意其他类型的命名空间。
 
 所以，现在趁热打铁看看命名空间的概述和API。该系列文章首次概括描述现有命名空间；
 接下来，会讲如何在程序中使用命名空间的API。
 
-The namespaces
+## 命名空间
 
-Currently, Linux implements six different types of namespaces. The purpose of each namespace is to wrap a particular global system resource in an abstraction that makes it appear to the processes within the namespace that they have their own isolated instance of the global resource. One of the overall goals of namespaces is to support the implementation of containers, a tool for lightweight virtualization (as well as other purposes) that provides a group of processes with the illusion that they are the only processes on the system.
+目前，Linux实现了6种命名空间。每个命名空间封装了一个抽象的全局系统资源，具有该
+命名空间的进程拥有隔离的全局资源实例。命名空间的还有一个目的是用来支持容器的实现，
+容器是轻量化虚拟（还有其他目的）工具，可以让一组进程产生错觉，错误地认为他们是
+系统中唯一的进程。
 
 In the discussion below, we present the namespaces in the order that they were implemented (or at least, the order in which the implementations were completed). The CLONE_NEW* identifiers listed in parentheses are the names of the constants used to identify namespace types when employing the namespace-related APIs (clone(), unshare(), and setns()) that we will describe in our follow-on articles.
 
