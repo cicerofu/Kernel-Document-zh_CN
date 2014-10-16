@@ -4,7 +4,7 @@ CPPPATH=
 LIBPATH=
 LIBS=
 
-all: main-0-template main-1-uts main-3-pid
+all: main-0-template main-1-uts main-3-pid main-4-ns
 
 main-0-template:
 	$(CC) -o main-0-template.o -c $(CFLAGS) $(CPPPATH) main-0-template.c
@@ -18,5 +18,9 @@ main-3-pid:
 	$(CC) -o main-3-pid.o -c $(CFLAGS) $(CPPPATH) main-3-pid.c
 	$(CC) -o main-3-pid main-3-pid.o $(LIBPATH) $(LIBS)
 
+main-4-ns:
+	$(CC) -o main-4-ns.o -c $(CFLAGS) $(CPPPATH) main-4-ns.c
+	$(CC) -o main-4-ns main-4-ns.o $(LIBPATH) $(LIBS)
+
 clean: 
-	rm -rf *.o main-0-template main-1-uts main-3-pid
+	rm -rf *.o main-0-template main-1-uts main-3-pid main-4-ns
