@@ -31,5 +31,8 @@
 
 ## BUG
 
+> http://lwn.net/Articles/542102/ 
+
 CLONE_NEWUSER Invalid argument
+What?! the user namespace is not enable? I have a doubt about it!
 
