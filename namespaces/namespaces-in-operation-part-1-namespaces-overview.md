@@ -33,18 +33,26 @@ clone()、unshare()和setns()。
 
 Mount namespaces (CLONE_NEWNS, Linux 2.4.19) isolate the set of filesystem mount points seen by a group of processes. Thus, processes in different mount namespaces can have different views of the filesystem hierarchy. With the addition of mount namespaces, the mount() and umount() system calls ceased operating on a global set of mount points visible to all processes on the system and instead performed operations that affected just the mount namespace associated with the calling process.
 
-One use of mount namespaces is to create environments that are similar to chroot jails. However, by contrast with the use of the chroot() system call, mount namespaces are a more secure and flexible tool for this task. Other more sophisticated uses of mount namespaces are also possible. For example, separate mount namespaces can be set up in a master-slave relationship, so that the mount events are automatically propagated from one namespace to another; this allows, for example, an optical disk device that is mounted in one namespace to automatically appear in other namespaces.
+挂载（命名空间）可以创建类似chroot狱的环境。
+但是，不同与chroot()系统调用，挂载（命名空间）更加安全和灵活。
+还可以更加高大上地使用挂载（命名空间）。
+例如，可以将挂载（命名空间）设置成主从关系，挂载信号可以从一个命名空间自动传递到另一个里；
+例如，当磁盘设备挂载在一个命名空间下，就会自动出现在另一个里。
 
-Mount namespaces were the first type of namespace to be implemented on Linux, appearing in 2002. This fact accounts for the rather generic "NEWNS" moniker (short for "new namespace"): at that time no one seems to have been thinking that other, different types of namespace might be needed in the future.
+挂载（命名空间）是Linux上第一个实现出来的，出现在2002年。
+“NEWNS”名字（“new namespaces”的简称）如此普适的原因：那个时候没人意识到，以后会需要其他类型的命名空间。
 
 UTS命名空间（CLONE_NEWUTS，Linux 2.6.19）隔离两个系统ID：节点名和域名；
-使用系统调用sethostname()和setdomainname()来设置它们。
+使用系统调用sethostname()和setdomainname()来设置。
 在容器的上下文当中，UTS命名空间特性允许每个容器拥有自己的主机名和NIS域名。
 对初始化和配置脚本非常有帮助，可以基于名称进行裁剪。
 “UTS”该术语来源于传递给uname()系统调用的结构体的名字：struct ustname。
 结构体的名字又是来源于“UNIX Time-sharing System”。
 
-IPC namespaces (CLONE_NEWIPC, Linux 2.6.19) isolate certain interprocess communication (IPC) resources, namely, System V IPC objects and (since Linux 2.6.30) POSIX message queues. The common characteristic of these IPC mechanisms is that IPC objects are identified by mechanisms other than filesystem pathnames. Each IPC namespace has its own set of System V IPC identifiers and its own POSIX message queue filesystem.
+IPC命名空间（CLONE_NEWIPC，Linux 2.6.19）隔离某种进程通讯资源，即System V IPC对象
+和（Linux 2.6.30之后）POSIX消息队列。
+这些IPC机制的共性是：IPC对象不是由文件系统的路径名来区分。
+每个IPC命名空间都有自己的System V IPC id，以及POSIX消息队列文件系统。
 
 PID命名空间（CLONE_NEWPID，Linux 2.6.24）隔离进程ID数字空间。
 换言之，在不同PID命名空间里的进程可以具有相同的PID。
@@ -53,9 +61,10 @@ PID命名空间还允许每个容器拥有init（PID 1），“所有进程的�
 
 From the point of view of a particular PID namespace instance, a process has two PIDs: the PID inside the namespace, and the PID outside the namespace on the host system. PID namespaces can be nested: a process will have one PID for each of the layers of the hierarchy starting from the PID namespace in which it resides through to the root PID namespace. A process can see (e.g., view via /proc/PID and send signals with kill()) only processes contained in its own PID namespace and the namespaces nested below that PID namespace.
 
-从特定的PID命名空间实例来看，一个进程有两个PIDs：命名空间之内的PID，命名空间之外（宿主）的PID。
-
-Network namespaces (CLONE_NEWNET, started in Linux 2.4.19 2.6.24 and largely completed by about Linux 2.6.29) provide isolation of the system resources associated with networking. Thus, each network namespace has its own network devices, IP addresses, IP routing tables, /proc/net directory, port numbers, and so on.
+网络命名空间（CLONE_NEWNET，从Linux 2.4.19 2.6.24开始，大概到Linux 2.6.29大部分
+已完成）提供网络系统资源的隔离。
+所以，每个网络命名空间具有自己的网络设备、IP地址、IP路由表、/proc/net目录、
+端口号等。
 
 Network namespaces make containers useful from a networking perspective: each container can have its own (virtual) network device and its own applications that bind to the per-namespace port number space; suitable routing rules in the host system can direct network packets to the network device associated with a specific container. Thus, for example, it is possible to have multiple containerized web servers on the same host system, with each server bound to port 80 in its (per-container) network namespace.
 
