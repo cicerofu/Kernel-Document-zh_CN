@@ -5,3 +5,4 @@ Kernel-Document-zh_CN
 
 * input 输入
 * namespaces 命名空间
+* prctl 过滤
