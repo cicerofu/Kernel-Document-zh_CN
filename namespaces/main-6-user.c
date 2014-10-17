@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
  
     printf(" - [%5d] [%5d] Hello ?\n", getpid(), getuid());
  
+    /* due to CVE-2013-1858 it is not able to use CLONE_NEWUSER */
     int child_pid = clone(child_main, child_stack + STACK_SIZE, 
                           CLONE_NEWUTS | CLONE_NEWIPC | CLONE_NEWPID | 
                           CLONE_NEWUSER | SIGCHLD, 

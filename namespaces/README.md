@@ -8,8 +8,8 @@
 
 ## 例子
 
-该例子是由Docker Hosting实验室的jtlebi从UTS、IPC、PID、NS、NET、(USER)不同层次的
-隔离来讲解Linux命名空间的概念。
+该例子是由Docker Hosting实验室的jtlebi从UTS、IPC、PID、NS、NET、~~USER~~ 
+不同层次的隔离来讲解Linux命名空间的概念。
 
 > https://blog.jtlebi.fr/2013/12/22/introduction-to-linux-namespaces-part-1-uts/
 
@@ -34,5 +34,4 @@
 > http://lwn.net/Articles/542102/ 
 
 CLONE_NEWUSER Invalid argument
-What?! the user namespace is not enable? I have a doubt about it!
 
