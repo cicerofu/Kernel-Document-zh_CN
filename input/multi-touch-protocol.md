@@ -1,13 +1,8 @@
 # 多点触摸协议
 
-<<<<<<< HEAD
-Copyright (C) 2014 Leslie Zhai <xiang.zhai@i-soft.com.cn>
-Copyright (C) 2014 Hyizal Sun <rong.sun@intel.com>
-=======
 ***Copyright (C) 2014 Leslie Zhai <xiang.zhai@i-soft.com.cn>*** 
 
 ***Copyright (C) 2014 Hyizal Sun <rong.sun@intel.com>***
->>>>>>> 9211c12c97d05b69a83d7a1b4d5e6aa73f50cd2b
 
 > https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 
@@ -332,8 +327,13 @@ A类设备，所有的手指数据不用被滤波，不同的手指都使用相�
 
 使用A类协议，可以看bcm5974驱动。使用B类协议，可以看hid-egalax驱动。
 
-[1] 同理，(TOOL_X - POSITION_X)差值可以判断倾角
-[2] 可以扩充列表
-[3] mtdev项目 http://bitmath.org/code/mtdev/
-[4] 查看事件的计算章节
-[5] 查看手指的跟踪章节
+[1] 同理，(TOOL_X - POSITION_X)差值可以判断倾角 
+
+[2] 可以扩充列表 
+
+[3] mtdev项目 http://bitmath.org/code/mtdev/ 
+
+[4] 查看事件的计算章节 
+
+[5] 查看手指的跟踪章节 
+
