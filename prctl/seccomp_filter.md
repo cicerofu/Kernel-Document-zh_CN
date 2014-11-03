@@ -1,16 +1,15 @@
-		SECure COMPuting with filters
-		=============================
+		  安  全  计  算  过  滤  器
+		==============================
 
-Introduction
-------------
+> https://www.kernel.org/doc/Documentation/prctl/seccomp_filter.txt
 
-A large number of system calls are exposed to every userland process
-with many of them going unused for the entire lifetime of the process.
-As system calls change and mature, bugs are found and eradicated.  A
-certain subset of userland applications benefit by having a reduced set
-of available system calls.  The resulting set reduces the total kernel
-surface exposed to the application.  System call filtering is meant for
-use with those applications.
+## 介绍
+
+大量的系统调用暴露给用户态进程，但在进程的整个生命周期并没有完全用到。
+随着系统调用的变更、成熟，缺陷得以修正。
+用户态应用程序（限制）只能访问一部分的系统调用。
+内核减少暴露给应用程序的系统调用。
+这些应用就可以使用系统调用过滤器。
 
 Seccomp filtering provides a means for a process to specify a filter for
 incoming system calls.  The filter is expressed as a Berkeley Packet
