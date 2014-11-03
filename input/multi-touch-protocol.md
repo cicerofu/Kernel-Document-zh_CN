@@ -1,7 +1,13 @@
 # 多点触摸协议
 
+<<<<<<< HEAD
 Copyright (C) 2014 Leslie Zhai <xiang.zhai@i-soft.com.cn>
 Copyright (C) 2014 Hyizal Sun <rong.sun@intel.com>
+=======
+***Copyright (C) 2014 Leslie Zhai <xiang.zhai@i-soft.com.cn>*** 
+
+***Copyright (C) 2014 Hyizal Sun <rong.sun@intel.com>***
+>>>>>>> 9211c12c97d05b69a83d7a1b4d5e6aa73f50cd2b
 
 > https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 
